@@ -10,6 +10,9 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.{PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
 
+import scala.io.Source
+//import scala.sys.process.processInternal.InputStream
+
 class Main extends Application {
 
   //Auxiliary types
@@ -74,15 +77,48 @@ class Main extends Application {
     cylinder1.setScaleZ(2)
     cylinder1.setMaterial(greenMaterial)
 
+    val cylinder2 = new Cylinder(10, 10, 10)
+
     val box1 = new Box(1, 1, 1)  //
     box1.setTranslateX(5)
     box1.setTranslateY(5)
     box1.setTranslateZ(5)
     box1.setMaterial(greenMaterial)
 
-    // 3D objects (group of nodes - javafx.scene.Node) that will be provide to the subScene
-    val worldRoot:Group = new Group(wiredBox, camVolume, lineX, lineY, lineZ, cylinder1, box1)
+    def createModels(lst: List[String]): Cylinder = {
+      lst match {
+        case Nil => new Cylinder()
+        case x::Nil => {
+          val y = x.split(" ")
+          val colors = y(1).substring(1, y(1).length - 1).split(",")
+          val cilindro = new Cylinder(0.5, 1, 10)
+          cilindro.setTranslateX(x(2))
+          cilindro.setTranslateY(x(3))
+          cilindro.setTranslateZ(x(4))
+          cilindro.setScaleX(x(5))
+          cilindro.setScaleY(x(6))
+          cilindro.setScaleZ(x(7))
+          val newMaterial = new PhongMaterial()
+          newMaterial.setDiffuseColor(Color.rgb(colors(0).toInt, colors(1).toInt, colors(2).toInt))
+          cilindro.setMaterial(newMaterial)
+          cilindro
+        }
+      }
+    }
 
+    //arranjar forma de correr a app com os todos os objetos retirados do ficheiro
+
+    def readFile(file: String): List[String] = {
+      val bufferedSource = Source.fromFile(file).getLines().toList
+      bufferedSource
+    }
+
+    val home = System.getProperty("user.home")
+
+    val cylinder3 = createModels(readFile(s"${home}/Desktop/config.txt"))
+
+    // 3D objects (group of nodes - javafx.scene.Node) that will be provide to the subScene
+    val worldRoot:Group = new Group(cylinder3)
     // Camera
     val camera = new PerspectiveCamera(true)
 
@@ -119,7 +155,7 @@ class Main extends Application {
       StackPane.setMargin(cameraView, new Insets(5))
 
     // Scene - defines what is rendered (in this case the subScene and the cameraView)
-    val root = new StackPane(subScene, cameraView)
+    val root = new StackPane(subScene)
     subScene.widthProperty.bind(root.widthProperty)
     subScene.heightProperty.bind(root.heightProperty)
 
@@ -127,7 +163,7 @@ class Main extends Application {
 
     //Mouse left click interaction
     scene.setOnMouseClicked((event) => {
-      camVolume.setTranslateX(camVolume.getTranslateX + 2)
+      //camVolume.setTranslateX(camVolume.getTranslateX + 2)
       worldRoot.getChildren.removeAll()
     })
 
@@ -135,6 +171,8 @@ class Main extends Application {
     stage.setTitle("PPM Project 21/22")
     stage.setScene(scene)
     stage.show
+
+
 
 /*
     //oct1 - example of an Octree[Placement] that contains only one Node (i.e. cylinder1)
@@ -180,8 +218,19 @@ class Main extends Application {
 
 object FxApp {
 
+  /*def array(lst: List[String], index: Int): Int = {
+    lst match {
+      case Nil => 0
+      case x::Nil => val y = x.split(" ")
+        val y1 = y(1).substring(1, y(1).length -1).split(",")
+      y1(0).toInt
+    }
+  }*/
+
   def main(args: Array[String]): Unit = {
-    Application.launch(classOf[Main], args: _*)
+    //Application.launch(classOf[Main], args: _*)
+    val home = System.getProperty("user.home")
+    //readModels(readFile(s"${home}/Desktop/config.txt"))
   }
 }
 
